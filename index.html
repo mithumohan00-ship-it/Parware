@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ParkWare – Parking Management System</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">PW</div>
+    <span class="logo-text">PARKWARE</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item nav-link active-main" onclick="navigateFromSidebar('overview', 'Dashboard', event)">
+      <span class="nav-icon">⊞</span>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-group open" data-group="parking">
+      <div class="nav-item active-group" onclick="toggleNavGroup('parking')">
+        <span class="nav-icon">🅿</span>
+        <span>Parking</span>
+        <span class="nav-arrow">▾</span>
+      </div>
+      <div class="nav-children">
+        <div class="nav-child active" onclick="navigateFromSidebar('overview', 'Parking Areas', event)">Parking Areas</div>
+        <div class="nav-child" onclick="navigateFromSidebar('violations', 'Fines', event)">Fines</div>
+        <div class="nav-child" onclick="navigateFromSidebar('observer', 'Complaints', event)">Complaints</div>
+        <div class="nav-child" onclick="navigateFromSidebar('plots', 'Booking', event)">Booking</div>
+        <div class="nav-child" onclick="navigateFromSidebar('weekly', 'Reservation', event)">Reservation</div>
+        <div class="nav-child" onclick="navigateFromSidebar('economy', 'Parking History', event)">Parking History</div>
+      </div>
+    </div>
+    <div class="nav-item nav-link" onclick="navigateFromSidebar('permissions-tab', 'Permissions', event)">
+      <span class="nav-icon">🔑</span>
+      <span>Permissions</span>
+      <span class="nav-arrow">▾</span>
+    </div>
+    <div class="nav-item nav-link" onclick="navigateFromSidebar('weekly', 'Management', event)">
+      <span class="nav-icon">👤</span>
+      <span>Management</span>
+      <span class="nav-arrow">▾</span>
+    </div>
+    <div class="nav-item nav-link" onclick="navigateFromSidebar('economy', 'Reports', event)">
+      <span class="nav-icon">📊</span>
+      <span>Reports</span>
+      <span class="nav-arrow">▾</span>
+    </div>
+    <div class="nav-item nav-link" onclick="navigateFromSidebar('observer', 'Information', event)">
+      <span class="nav-icon">ℹ</span>
+      <span>Information</span>
+      <span class="nav-arrow">▾</span>
+    </div>
+    <div class="nav-item nav-link" onclick="navigateFromSidebar('settings-tab', 'Settings', event)">
+      <span class="nav-icon">⚙</span>
+      <span>Settings</span>
+      <span class="nav-arrow">▾</span>
+    </div>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-kicker">Operations Dashboard</div>
+      <div class="breadcrumb">
+      <span class="bc-parent">Parking Areas</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-current">Area Details</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="system-pill">
+        <span class="system-pulse"></span>
+        <span>All Gate Systems Online</span>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search by plate, customer, or code" id="searchInput"/>
+      </div>
+      <button class="icon-btn notify-btn" type="button" aria-label="Notifications">
+        🔔
+        <span class="notify-badge" id="notifyBadge">3</span>
+      </button>
+      <button class="icon-btn" type="button" id="themeToggle" aria-label="Toggle dark mode">◐</button>
+      <div class="user-avatar">PW</div>
+    </div>
+  </div>
+
+  <!-- TAB NAV -->
+  <div class="tab-nav">
+    <button class="tab active" onclick="switchTab(this,'overview')">Overview</button>
+    <button class="tab" onclick="switchTab(this,'plots')">Parking Plots</button>
+    <button class="tab" onclick="switchTab(this,'settings-tab')">Settings</button>
+    <button class="tab" onclick="switchTab(this,'permissions-tab')">Permissions</button>
+    <button class="tab" onclick="switchTab(this,'violations')">Violations</button>
+    <button class="tab" onclick="switchTab(this,'observer')">Observer</button>
+    <button class="tab" onclick="switchTab(this,'economy')">Economy</button>
+    <button class="tab" onclick="switchTab(this,'weekly')">Weekly Tasks</button>
+  </div>
+
+  <!-- ===== OVERVIEW TAB ===== -->
+  <div id="tab-overview" class="tab-content active">
+    <!-- STAT CARDS -->
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-icon teal"><span>⊗</span></div>
+        <div class="stat-info">
+          <div class="stat-val" id="totalRented">16.8K</div>
+          <div class="stat-label">Total Rented</div>
+          <div class="stat-sub">Active plots across this area</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><span>✓</span></div>
+        <div class="stat-info">
+          <div class="stat-val" id="permittedCar">80</div>
+          <div class="stat-label">Permitted Car</div>
+          <div class="stat-sub">Available permit-ready spaces</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><span>📅</span></div>
+        <div class="stat-info">
+          <div class="stat-val" id="checkinCount">20</div>
+          <div class="stat-label">Check-in</div>
+          <div class="stat-sub">Currently occupied spots</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><span>☑</span></div>
+        <div class="stat-info">
+          <div class="stat-val" id="checkoutCount">10</div>
+          <div class="stat-label">Pending Tasks</div>
+          <div class="stat-sub">Open reviews and weekly actions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AREA INFO + ANALYTICS GRID -->
+    <div class="info-analytics-grid">
+
+      <!-- AREA INFORMATION -->
+      <div class="card area-info-card">
+        <div class="card-header">
+          <h2>Area Information</h2>
+          <button class="edit-btn primary-edit" onclick="openModal('editAreaModal')">✏ Edit Area</button>
+        </div>
+        <div class="area-info-body">
+          <div class="area-photo">
+            <img src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=500&q=80" alt="Parking Area"/>
+            <button class="image-overlay-btn" type="button">Live Occupancy View</button>
+          </div>
+          <div class="area-details">
+            <div class="detail-group">
+              <div class="detail-row">
+                <div>
+                  <div class="detail-label">Area Name</div>
+                  <div class="detail-val" id="areaName">2 timer parkering</div>
+                </div>
+                <div>
+                  <div class="detail-label">Customer</div>
+                  <div class="detail-val" id="customerName">Patricia Winther</div>
+                </div>
+              </div>
+              <div class="detail-row">
+                <div>
+                  <div class="detail-label">Address</div>
+                  <div class="detail-val" id="areaAddress">Jernbanevej 31, 3400 Holbeak</div>
+                </div>
+                <div>
+                  <div class="detail-label">Areas</div>
+                  <div class="detail-val" id="areaAreas">Tranehavegård – Plads</div>
+                </div>
+              </div>
+              <div class="detail-row">
+                <div>
+                  <div class="detail-label">Type</div>
+                  <div class="detail-val"><span class="area-badge area-badge-normal" id="areaType">Normal</span></div>
+                </div>
+                <div>
+                  <div class="detail-label">Parking Code</div>
+                  <div class="detail-val" id="parkingCode">100410</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+        <!-- PARKING DETAILS -->
+        <div class="card parking-details-card">
+          <h3 class="card-title">Parking Details</h3>
+          <div class="donut-wrap">
+            <canvas id="donutChart" width="130" height="130"></canvas>
+            <div class="donut-center">
+              <div class="donut-total" id="donutTotal">352</div>
+              <div class="donut-label">Total</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="dot teal-dot"></span> Rented <strong id="rentedCount">250</strong></div>
+            <div class="legend-item"><span class="dot grey-dot"></span> Remaining <strong id="remainingCount">102</strong></div>
+          </div>
+        </div>
+
+        <!-- FINES -->
+        <div class="card fines-card">
+          <h3 class="card-title">Fines</h3>
+          <canvas id="finesChart" height="90"></canvas>
+          <div class="fines-legend">
+            <span><span class="dot green-dot"></span> Approved</span>
+            <span><span class="dot orange-dot"></span> Pending</span>
+            <span><span class="dot red-dot"></span> Rejected</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVENUE ANALYTICS -->
+    <div class="card revenue-card">
+      <div class="revenue-header">
+        <h2>Revenue Analytics</h2>
+        <div class="revenue-controls">
+          <button class="edit-btn report-btn" id="generateReportBtn" type="button" onclick="generateReport()">
+            <span class="report-spinner" id="reportSpinner"></span>
+            <span id="reportBtnText">Generate PDF Report</span>
+          </button>
+          <button class="see-more-btn" onclick="loadRevenue()">See More</button>
+          <input type="date" id="revenueDate" value="2023-02-02" class="date-input"/>
+        </div>
+      </div>
+      <div class="revenue-stats">
+        <div class="rev-stat">
+          <div class="rev-icon blue-bg">💰</div>
+          <div>
+            <div class="rev-val" id="totalSales">$50K</div>
+            <div class="rev-label">Total Sales</div>
+            <div class="trend-chip positive" id="salesTrend">+5.2% vs last month</div>
+          </div>
+        </div>
+        <div class="rev-stat">
+          <div class="rev-icon grey-bg">📊</div>
+          <div>
+            <div class="rev-val" id="totalExpenses">$20.5K</div>
+            <div class="rev-label">Expenses</div>
+            <div class="trend-chip negative" id="expenseTrend">+1.8% vs last month</div>
+          </div>
+        </div>
+        <div class="rev-stat">
+          <div class="rev-icon green-bg">📈</div>
+          <div>
+            <div class="rev-val" id="netRevenue">$29.5K</div>
+            <div class="rev-label">Revenue</div>
+            <div class="trend-chip positive" id="revenueTrend">+7.6% vs last month</div>
+          </div>
+        </div>
+      </div>
+      <canvas id="revenueChart" height="80"></canvas>
+    </div>
+
+    <div class="card control-center-card">
+      <div class="card-header">
+        <h2>Live Control Center</h2>
+        <button class="edit-btn">OCR Stream</button>
+      </div>
+      <div class="control-center-grid">
+        <div class="activity-feed">
+          <div class="feed-log" id="activityFeed"></div>
+        </div>
+        <div class="impact-panel">
+          <div class="impact-stat">
+            <span class="impact-label">Average Idle Time Reduced</span>
+            <strong>11.4 min</strong>
+          </div>
+          <div class="impact-stat">
+            <span class="impact-label">EV Carbon Saved</span>
+            <strong>284 kg CO2</strong>
+          </div>
+          <div class="impact-stat">
+            <span class="impact-label">Peak Crowd Window</span>
+            <strong>08:00 - 10:00</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PARKING PLOTS TAB ===== -->
+  <div id="tab-plots" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h2>Parking Plots</h2>
+        <button class="edit-btn" onclick="openModal('addPlotModal')">+ Add Plot</button>
+      </div>
+      <div class="plot-toolbar">
+        <div class="plot-filters">
+          <select id="plotStatusFilter" onchange="applyPlotFilters()">
+            <option value="">All Status</option>
+            <option value="Available">Available</option>
+            <option value="Occupied">Occupied</option>
+            <option value="Reserved">Reserved</option>
+          </select>
+          <select id="plotVehicleTypeFilter" onchange="applyPlotFilters()">
+            <option value="">All Vehicle Types</option>
+            <option value="registered">Registered</option>
+            <option value="empty">Empty</option>
+          </select>
+          <select id="plotFloorFilter" onchange="applyPlotFilters()">
+            <option value="">All Floors</option>
+            <option value="Ground Floor">Ground Floor</option>
+            <option value="Floor 1">Floor 1</option>
+            <option value="Floor 2">Floor 2</option>
+          </select>
+        </div>
+        <div class="bulk-actions">
+          <button class="edit-btn" type="button" onclick="bulkIssueFines()">Bulk Issue Fines</button>
+          <button class="edit-btn" type="button" onclick="bulkClearStatus()">Bulk Clear Status</button>
+        </div>
+      </div>
+      <div class="plot-visual-grid">
+        <div class="plot-map-card">
+          <div class="mini-section-head">
+            <h3>Interactive Lot View</h3>
+            <span id="plotMapSummary">4 active plots</span>
+          </div>
+          <div class="manual-floor-tabs">
+            <button class="floor-chip active" type="button" onclick="setVisualFloorFilter('Ground Floor', this)">Ground Floor</button>
+            <button class="floor-chip" type="button" onclick="setVisualFloorFilter('Floor 1', this)">Floor 1</button>
+            <button class="floor-chip" type="button" onclick="setVisualFloorFilter('Floor 2', this)">Floor 2</button>
+          </div>
+          <div class="floor-lot-view" id="plotMap"></div>
+        </div>
+        <div class="plot-quickview" id="plotQuickView">
+          <div class="quickview-empty">
+            <div class="quickview-icon">🅿</div>
+            <strong>Select a slot</strong>
+            <p>Click a parking slot to inspect vehicle, timing, and gate camera details.</p>
+            <label class="upload-photo-btn" for="slotPhotoUpload">Select Photo From Device</label>
+            <input type="file" id="slotPhotoUpload" accept="image/*" hidden onchange="handleQuickViewPhotoUpload(event)" />
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="plotsTable">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="selectAllPlots" onchange="toggleSelectAllPlots(this.checked)"/></th>
+              <th>Plot ID</th>
+              <th>Plot Number</th>
+              <th>Status</th>
+              <th>Vehicle</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plotsBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="plotsEmptyState" hidden>
+        <div class="empty-illustration">⌕</div>
+        <strong>No results found</strong>
+        <p>Try a different status, floor, or search keyword.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VIOLATIONS TAB ===== -->
+  <div id="tab-violations" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h2>Violations</h2>
+        <button class="edit-btn" onclick="openModal('addViolationModal')">+ Report Violation</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="violationsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vehicle No.</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Fine Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="violationsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ECONOMY TAB ===== -->
+  <div id="tab-economy" class="tab-content">
+    <div class="card">
+      <h2 style="margin-bottom:20px;">Economy Overview</h2>
+      <div class="economy-grid">
+        <div class="eco-card green">
+          <div class="eco-label">Total Revenue</div>
+          <div class="eco-val" id="ecoRevenue">$29,500</div>
+        </div>
+        <div class="eco-card blue">
+          <div class="eco-label">Total Sales</div>
+          <div class="eco-val" id="ecoSales">$50,000</div>
+        </div>
+        <div class="eco-card orange">
+          <div class="eco-label">Total Expenses</div>
+          <div class="eco-val" id="ecoExpenses">$20,500</div>
+        </div>
+        <div class="eco-card red">
+          <div class="eco-label">Pending Fines</div>
+          <div class="eco-val" id="ecoPending">$3,200</div>
+        </div>
+      </div>
+      <canvas id="economyChart" height="100" style="margin-top:30px;"></canvas>
+    </div>
+  </div>
+
+  <div id="tab-settings-tab" class="tab-content">
+    <div class="tab-grid two-col">
+      <div class="card">
+        <div class="card-header">
+          <h2>Area Settings</h2>
+          <button class="edit-btn" id="autoSaveToggle" onclick="toggleAutoSave()">Auto-save On</button>
+        </div>
+        <div class="settings-list">
+          <div class="setting-row" data-setting="entry-alerts">
+            <div>
+              <div class="setting-title">Entry Gate Alerts</div>
+              <div class="setting-copy">Notify supervisors when occupancy exceeds 90%.</div>
+            </div>
+            <button class="toggle-switch active" type="button" aria-pressed="true" onclick="toggleSetting('entry-alerts', this)">
+              <span class="toggle-knob"></span>
+            </button>
+          </div>
+          <div class="setting-row" data-setting="night-mode">
+            <div>
+              <div class="setting-title">Night Parking Mode</div>
+              <div class="setting-copy">Allow reserved and permit-only access after 10:00 PM.</div>
+            </div>
+            <button class="toggle-switch" type="button" aria-pressed="false" onclick="toggleSetting('night-mode', this)">
+              <span class="toggle-knob"></span>
+            </button>
+          </div>
+          <div class="setting-row" data-setting="camera-health">
+            <div>
+              <div class="setting-title">Camera Health Checks</div>
+              <div class="setting-copy">Run diagnostics every 30 minutes on all entry cameras.</div>
+            </div>
+            <button class="toggle-switch active" type="button" aria-pressed="true" onclick="toggleSetting('camera-health', this)">
+              <span class="toggle-knob"></span>
+            </button>
+          </div>
+          <div class="setting-row" data-setting="fine-escalation">
+            <div>
+              <div class="setting-title">Fine Escalation Window</div>
+              <div class="setting-copy">Escalate unpaid fines after 72 hours.</div>
+            </div>
+            <button class="toggle-switch" type="button" aria-pressed="false" onclick="toggleSetting('fine-escalation', this)">
+              <span class="toggle-knob"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-bottom:20px;">Operational Defaults</h2>
+        <div class="mini-metrics">
+          <div class="mini-metric">
+            <span class="mini-label">Default Rate</span>
+            <strong>$4.50/hr</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="mini-label">Grace Period</span>
+            <strong>15 min</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="mini-label">Reserved Slots</span>
+            <strong>18 plots</strong>
+          </div>
+          <div class="mini-metric">
+            <span class="mini-label">Exit Lanes</span>
+            <strong>3 active</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-permissions-tab" class="tab-content">
+    <div class="tab-grid two-col">
+      <div class="card">
+        <div class="card-header">
+          <h2>Team Access</h2>
+          <button class="edit-btn" id="rolesCountBtn">4 Roles</button>
+        </div>
+        <div class="permission-list">
+          <div class="permission-row" data-role="operators">
+            <div class="avatar-chip teal-chip">OP</div>
+            <div class="permission-copy">
+              <strong>Operators</strong>
+              <span>Check-ins, plot assignment, violation reporting</span>
+            </div>
+            <div class="permission-actions">
+              <button class="access-btn active" type="button" onclick="setPermission('operators', 'allow', this)">Allow</button>
+              <button class="access-btn" type="button" onclick="setPermission('operators', 'deny', this)">Deny</button>
+            </div>
+          </div>
+          <div class="permission-row" data-role="supervisors">
+            <div class="avatar-chip blue-chip">SV</div>
+            <div class="permission-copy">
+              <strong>Supervisors</strong>
+              <span>Approvals, live dashboard, revenue monitoring</span>
+            </div>
+            <div class="permission-actions">
+              <button class="access-btn active" type="button" onclick="setPermission('supervisors', 'allow', this)">Allow</button>
+              <button class="access-btn" type="button" onclick="setPermission('supervisors', 'deny', this)">Deny</button>
+            </div>
+          </div>
+          <div class="permission-row" data-role="security">
+            <div class="avatar-chip orange-chip">SC</div>
+            <div class="permission-copy">
+              <strong>Security</strong>
+              <span>Incident tracking and vehicle history visibility</span>
+            </div>
+            <div class="permission-actions">
+              <button class="access-btn active" type="button" onclick="setPermission('security', 'allow', this)">Allow</button>
+              <button class="access-btn" type="button" onclick="setPermission('security', 'deny', this)">Deny</button>
+            </div>
+          </div>
+          <div class="permission-row" data-role="finance">
+            <div class="avatar-chip purple-chip">FN</div>
+            <div class="permission-copy">
+              <strong>Finance</strong>
+              <span>Invoices, fines ledger, monthly exports</span>
+            </div>
+            <div class="permission-actions">
+              <button class="access-btn active" type="button" onclick="setPermission('finance', 'allow', this)">Allow</button>
+              <button class="access-btn" type="button" onclick="setPermission('finance', 'deny', this)">Deny</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-bottom:20px;">Access Summary</h2>
+        <div class="audit-stack">
+          <div class="audit-item">
+            <span class="audit-time">08:42</span>
+            <div>
+              <strong>Supervisor override approved</strong>
+              <p>Manual release granted for reserved bay B-12.</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <span class="audit-time">09:05</span>
+            <div>
+              <strong>New operator onboarded</strong>
+              <p>Gate desk access enabled for evening shift.</p>
+            </div>
+          </div>
+          <div class="audit-item">
+            <span class="audit-time">10:10</span>
+            <div>
+              <strong>Finance scope updated</strong>
+              <p>Refund approval removed from contractor account.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-observer" class="tab-content">
+    <div class="tab-grid two-col">
+      <div class="card">
+        <div class="card-header">
+          <h2>Live Observer Feed</h2>
+          <button class="edit-btn">Streaming</button>
+        </div>
+        <div class="observer-feed">
+          <div class="feed-item">
+            <span class="feed-status live"></span>
+            <div>
+              <strong>North Gate camera flagged congestion</strong>
+              <p>7 vehicles queued, average entry delay 4m 12s.</p>
+            </div>
+            <span class="feed-time">Just now</span>
+          </div>
+          <div class="feed-item">
+            <span class="feed-status info"></span>
+            <div>
+              <strong>Reserved plot B-01 occupied</strong>
+              <p>Permit verified against morning reservation log.</p>
+            </div>
+            <span class="feed-time">5 min ago</span>
+          </div>
+          <div class="feed-item">
+            <span class="feed-status warn"></span>
+            <div>
+              <strong>Violation appeal requested</strong>
+              <p>Vehicle KA-04-GH-3456 submitted supporting receipt.</p>
+            </div>
+            <span class="feed-time">18 min ago</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-bottom:20px;">Watchlist</h2>
+        <div class="watchlist">
+          <div class="watch-row">
+            <span>Main entrance</span>
+            <strong>Stable</strong>
+          </div>
+          <div class="watch-row">
+            <span>VIP permit misuse</span>
+            <strong>2 cases</strong>
+          </div>
+          <div class="watch-row">
+            <span>Payment kiosk uptime</span>
+            <strong>99.4%</strong>
+          </div>
+          <div class="watch-row">
+            <span>Lane occupancy</span>
+            <strong>61%</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-weekly" class="tab-content">
+    <div class="tab-grid two-col">
+      <div class="card">
+        <div class="card-header">
+          <h2>Weekly Tasks</h2>
+          <button class="edit-btn">This Week</button>
+        </div>
+        <div class="task-list">
+          <div class="task-row done" data-task="reconcile">
+            <input type="checkbox" checked onchange="toggleTask(this)" />
+            <div>
+              <strong>Reconcile weekend revenue</strong>
+              <p>Completed by finance desk at 09:15 AM.</p>
+            </div>
+          </div>
+          <div class="task-row" data-task="signage">
+            <input type="checkbox" onchange="toggleTask(this)" />
+            <div>
+              <strong>Inspect reserved lane signage</strong>
+              <p>Due Tuesday before 6:00 PM.</p>
+            </div>
+          </div>
+          <div class="task-row" data-task="appeals">
+            <input type="checkbox" onchange="toggleTask(this)" />
+            <div>
+              <strong>Review pending violation appeals</strong>
+              <p>3 cases waiting for supervisor action.</p>
+            </div>
+          </div>
+          <div class="task-row done" data-task="whitelist">
+            <input type="checkbox" checked onchange="toggleTask(this)" />
+            <div>
+              <strong>Refresh permit whitelist export</strong>
+              <p>Synced with access control system.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-bottom:20px;">Weekly Targets</h2>
+        <div class="target-stack">
+          <div class="target-row">
+            <div class="target-copy">
+              <span>Occupancy efficiency</span>
+              <strong>84%</strong>
+            </div>
+            <div class="progress"><span style="width:84%"></span></div>
+          </div>
+          <div class="target-row">
+            <div class="target-copy">
+              <span>Fine recovery</span>
+              <strong>62%</strong>
+            </div>
+            <div class="progress"><span style="width:62%"></span></div>
+          </div>
+          <div class="target-row">
+            <div class="target-copy">
+              <span>Camera uptime</span>
+              <strong>97%</strong>
+            </div>
+            <div class="progress"><span style="width:97%"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="editAreaModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Area Information</h3>
+      <button class="modal-close" onclick="closeModal('editAreaModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Area Name</label>
+          <input type="text" id="editAreaName" placeholder="Area name"/>
+        </div>
+        <div class="form-group">
+          <label>Customer</label>
+          <input type="text" id="editCustomer" placeholder="Customer name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="editAddress" placeholder="Address"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="editType">
+            <option>Normal</option>
+            <option>Premium</option>
+            <option>Handicap</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Parking Code</label>
+          <input type="text" id="editCode" placeholder="Code"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('editAreaModal')">Cancel</button>
+      <button class="btn-save" onclick="saveAreaInfo()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addPlotModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Parking Plot</h3>
+      <button class="modal-close" onclick="closeModal('addPlotModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Plot Number</label>
+          <input type="text" id="plotNumber" placeholder="e.g. A-12"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="plotStatus">
+            <option>Available</option>
+            <option>Occupied</option>
+            <option>Reserved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Vehicle Number</label>
+        <input type="text" id="plotVehicle" placeholder="Vehicle registration"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('addPlotModal')">Cancel</button>
+      <button class="btn-save" onclick="addPlot()">Add Plot</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addViolationModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Report Violation</h3>
+      <button class="modal-close" onclick="closeModal('addViolationModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Vehicle Number</label>
+          <input type="text" id="violVehicle" placeholder="Vehicle no."/>
+        </div>
+        <div class="form-group">
+          <label>Violation Type</label>
+          <select id="violType">
+            <option>No Permit</option>
+            <option>Expired Permit</option>
+            <option>Wrong Zone</option>
+            <option>Overtime</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Fine Amount ($)</label>
+        <input type="number" id="violFine" placeholder="e.g. 150"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('addViolationModal')">Cancel</button>
+      <button class="btn-save" onclick="addViolation()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
